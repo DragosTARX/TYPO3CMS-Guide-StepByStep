@@ -11,16 +11,23 @@ jobs:
     if: github.repository_owner == 'TYPO3-documentation'
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App Token
+        id: get_app_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.get_app_token.outputs.token }}
           ref: contrib
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
+      - name: Install PHP
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: '8.3'
+          php-extensions: ''
 
       - name: Remove 00Incoming folder
         run: rm -rf Documentation/00Incoming
@@ -48,4 +55,4 @@ jobs:
           git commit -m "Pre-render: $(git show -s --format='%s')"
           git push origin contrib:main --force
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_app_token.outputs.token }}
